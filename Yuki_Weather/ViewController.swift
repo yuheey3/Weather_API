@@ -6,14 +6,105 @@
 //
 
 import UIKit
+import Combine
 
 class ViewController: UIViewController {
+    
+    @IBOutlet var pkrLocation : UIPickerView!
+    @IBOutlet var lblRegion : UILabel!
+    @IBOutlet var lblName : UILabel!
+    @IBOutlet var lblCountry : UILabel!
+    @IBOutlet var lblTime : UILabel!
+    @IBOutlet var lblTempC : UILabel!
+    @IBOutlet var lblFeels : UILabel!
+    @IBOutlet var lblwind : UILabel!
+    @IBOutlet var lblUv : UILabel!
+    @IBOutlet var lbltext : UILabel!
+    @IBOutlet var imageIcon : UIImageView!
+
+    let locationList = ["Toronto","Vancouver","Halifax", "Seoul","Takamatsu","Osaka","Hiroshima","Nagoya"]
+    
+    private let weathersFetcher = WeathersFetcher.getInstance()
+    private var weatherList : Weather = Weather()
+    private var cancellables: Set<AnyCancellable> = []
+    
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         // Do any additional setup after loading the view.
+        
+        self.navigationItem.title = " Weather"
+        
+        self.pkrLocation.dataSource = self
+        self.pkrLocation.delegate = self
     }
 
+    @IBAction func selectWeather(){
+        var newWeather = Weather()
+        newWeather.name = self.locationList[self.pkrLocation.selectedRow(inComponent: 0)]
+        
+        self.weathersFetcher.fetchDataFromAPI(loc: newWeather.name)
+       self.receiveChanges()
+        
+        //print(#function,newWeather.name_w)
+        
+        
+    }
 
+private func receiveChanges(){
+    self.weathersFetcher.$weatherList.receive(on: RunLoop.main)
+        .sink{ (weather) in
+            print(#function, "Received Weather : ", weather)
+         
+            self.weatherList = weather
+            self.lblName.text = self.weatherList.name
+            self.lblRegion.text = self.weatherList.region
+            self.lblCountry.text = self.weatherList.country
+            self.lblTime.text = self.weatherList.last_updated
+            self.lblTempC.text = String(self.weatherList.temp_c)
+            
+            self.lblFeels.text = String(self.weatherList.feelslike_c)
+            self.lblwind.text = self.weatherList.wind_dir
+            self.lblUv.text = String(self.weatherList.uv)
+        
+            self.lbltext.text = self.weatherList.text
+            self.imageIcon.image = UIImage(url: URL(string:  "https:" + self.weatherList.icon))
+        }
+        .store(in : &cancellables)
+}
+   // lblRegion.text = "\(self.weatherList.region_w)"
 }
 
+
+
+
+extension ViewController : UIPickerViewDelegate, UIPickerViewDataSource{
+    func numberOfComponents(in pickerView: UIPickerView) -> Int {
+        return 1
+    }
+    
+    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+        return self.locationList.count
+        
+    }
+    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
+        return self.locationList[row]
+    }
+    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
+        print(#function,"Selected location : \(self.locationList[row])")
+    }
+}
+
+extension UIImage {
+  convenience init?(url: URL?) {
+    guard let url = url else { return nil }
+            
+    do {
+      self.init(data: try Data(contentsOf: url))
+    } catch {
+      print("Cannot load image from url: \(url) with error: \(error)")
+      return nil
+    }
+  }
+}

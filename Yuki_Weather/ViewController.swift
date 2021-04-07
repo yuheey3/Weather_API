@@ -1,7 +1,7 @@
 //
 //  ViewController.swift
 //  Yuki_Weather
-//
+//  Student#: 141082180
 //  Created by Yuki Waka on 2021-04-05.
 //
 
@@ -18,17 +18,22 @@ class ViewController: UIViewController {
     @IBOutlet var lblTempC : UILabel!
     @IBOutlet var lblFeels : UILabel!
     @IBOutlet var lblwind : UILabel!
+    @IBOutlet var lblwind_kph : UILabel!
     @IBOutlet var lblUv : UILabel!
     @IBOutlet var lbltext : UILabel!
     @IBOutlet var imageIcon : UIImageView!
-
-    let locationList = ["Toronto","Vancouver","Halifax", "Seoul","Takamatsu","Osaka","Hiroshima","Nagoya"]
+    @IBOutlet var lblwindText : UILabel!
+    @IBOutlet var lblkphText : UILabel!
+    @IBOutlet var lblUvText : UILabel!
+    @IBOutlet var lblFeelsText : UILabel!
+    
+    let locationList = ["Toronto","Vancouver","Edmonton","Halifax","Montreal", "Seoul","Takamatsu","Osaka","Hiroshima","Nagoya"]
     
     private let weathersFetcher = WeathersFetcher.getInstance()
     private var weatherList : Weather = Weather()
     private var cancellables: Set<AnyCancellable> = []
     
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -38,42 +43,64 @@ class ViewController: UIViewController {
         
         self.pkrLocation.dataSource = self
         self.pkrLocation.delegate = self
+        
+        self.lblName.text =  ""
+        self.lblRegion.text = ""
+        self.lblCountry.text = ""
+        self.lblTime.text = ""
+        self.lblTempC.text = ""
+        
+        self.lblFeels.text = ""
+        self.lblwind.text = ""
+        self.lblwind_kph.text = ""
+        self.lblUv.text = ""
+        
+        self.lbltext.text = ""
+        
+        self.lblwindText.text = ""
+        self.lblkphText.text = ""
+        self.lblUvText.text = ""
+        self.lblFeelsText.text = ""
     }
-
+    
     @IBAction func selectWeather(){
         var newWeather = Weather()
         newWeather.name = self.locationList[self.pkrLocation.selectedRow(inComponent: 0)]
         
         self.weathersFetcher.fetchDataFromAPI(loc: newWeather.name)
-       self.receiveChanges()
+        self.receiveChanges()
         
         //print(#function,newWeather.name_w)
-        
-        
     }
-
-private func receiveChanges(){
-    self.weathersFetcher.$weatherList.receive(on: RunLoop.main)
-        .sink{ (weather) in
-            print(#function, "Received Weather : ", weather)
-         
-            self.weatherList = weather
-            self.lblName.text = self.weatherList.name
-            self.lblRegion.text = self.weatherList.region
-            self.lblCountry.text = self.weatherList.country
-            self.lblTime.text = self.weatherList.last_updated
-            self.lblTempC.text = String(self.weatherList.temp_c)
-            
-            self.lblFeels.text = String(self.weatherList.feelslike_c)
-            self.lblwind.text = self.weatherList.wind_dir
-            self.lblUv.text = String(self.weatherList.uv)
-        
-            self.lbltext.text = self.weatherList.text
-            self.imageIcon.image = UIImage(url: URL(string:  "https:" + self.weatherList.icon))
-        }
-        .store(in : &cancellables)
-}
-   // lblRegion.text = "\(self.weatherList.region_w)"
+    
+    private func receiveChanges(){
+        self.weathersFetcher.$weatherList.receive(on: RunLoop.main)
+            .sink{ (weather) in
+                print(#function, "Received Weather : ", weather)
+                
+                self.weatherList = weather
+                self.lblName.text = self.weatherList.name
+                self.lblRegion.text = self.weatherList.region
+                self.lblCountry.text = self.weatherList.country
+                self.lblTime.text = self.weatherList.last_updated
+                self.lblTempC.text = String(self.weatherList.temp_c)+"°"
+                
+                self.lblFeels.text = String(self.weatherList.feelslike_c)+"°"
+                self.lblwind.text = self.weatherList.wind_dir
+                self.lblwind_kph.text = String(self.weatherList.wind_kph)
+                self.lblUv.text = String(self.weatherList.uv)
+                
+                self.lbltext.text = self.weatherList.text
+                self.imageIcon.image = UIImage(url: URL(string:  "https:" + self.weatherList.icon))
+                
+                self.lblwindText.text = "Wind direction :"
+                self.lblkphText.text = "Wind kph :"
+                self.lblUvText.text = "UV :"
+                self.lblFeelsText.text = "Feels"
+            }
+            .store(in : &cancellables)
+    }
+    
 }
 
 
@@ -97,14 +124,14 @@ extension ViewController : UIPickerViewDelegate, UIPickerViewDataSource{
 }
 
 extension UIImage {
-  convenience init?(url: URL?) {
-    guard let url = url else { return nil }
-            
-    do {
-      self.init(data: try Data(contentsOf: url))
-    } catch {
-      print("Cannot load image from url: \(url) with error: \(error)")
-      return nil
+    convenience init?(url: URL?) {
+        guard let url = url else { return nil }
+        
+        do {
+            self.init(data: try Data(contentsOf: url))
+        } catch {
+            print("Cannot load image from url: \(url) with error: \(error)")
+            return nil
+        }
     }
-  }
 }

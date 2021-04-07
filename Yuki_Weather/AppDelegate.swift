@@ -1,7 +1,7 @@
 //
 //  AppDelegate.swift
 //  Yuki_Weather
-//
+//  Student#: 141082180
 //  Created by Yuki Waka on 2021-04-05.
 //
 
